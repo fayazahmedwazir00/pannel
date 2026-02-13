@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HAQQANI TOOLS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        @font-face { font-family: 'HaqqaniFont'; src: url('stylish.ttf'); }
+
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --neon-green: #00ff41;
+            --neon-purple: #b300ff;
+            --neon-red: #ff0055;
+            --neon-blue: #00ccff;
+        }
+
+        body {
+            margin: 0; padding: 0; background-color: #050505; color: white;
+            font-family: 'Poppins', sans-serif; display: flex; flex-direction: column;
+            align-items: center; min-height: 100vh; overflow-x: hidden;
+        }
+
+        canvas#matrix-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.15; pointer-events: none; }
+
+        /* --- TICKER --- */
+        .news-ticker-wrap { width: 100%; background: rgba(0,0,0,0.95); border-bottom: 1px solid #333; position: fixed; top: 0; z-index: 1000; overflow: hidden; height: 30px; }
+        .ticker-content { display: inline-block; white-space: nowrap; color: var(--neon-green); font-weight: 600; font-size: 0.9rem; line-height: 30px; padding-left: 100%; }
+        
+        .anim-normal { animation-name: ticker-normal; animation-timing-function: linear; animation-iteration-count: infinite; }
+        .anim-reverse { animation-name: ticker-reverse; animation-timing-function: linear; animation-iteration-count: infinite; }
+        
+        @keyframes ticker-normal { 0% { transform: translateX(0%); } 100% { transform: translateX(-100%); } }
+        @keyframes ticker-reverse { 0% { transform: translateX(-100%); } 100% { transform: translateX(0%); } }
+
+        /* --- GLITCH HEADER --- */
+        header { text-align: center; margin-top: 50px; margin-bottom: 10px; width: 95%; max-width: 800px; position: relative; }
+        
+        h1 {
+            font-family: 'HaqqaniFont', sans-serif;
+            font-size: 3.5rem;
+            color: white;
+            position: relative;
+            display: inline-block;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            animation: glitch-skew 1s infinite linear alternate-reverse;
+        }
+        
+        h1::before, h1::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        h1::before { left: 2px; text-shadow: -2px 0 #ff00c1; clip: rect(44px, 450px, 56px, 0); animation: glitch-anim 2s infinite linear alternate-reverse; }
+        h1::after { left: -2px; text-shadow: -2px 0 #00fff9; clip: rect(44px, 450px, 56px, 0); animation: glitch-anim2 2s infinite linear alternate-reverse; }
+
+        @keyframes glitch-anim {
+            0% { clip: rect(10px, 9999px, 30px, 0); transform: skew(0.5deg); }
+            5% { clip: rect(70px, 9999px, 90px, 0); transform: skew(-0.5deg); }
+            10% { clip: rect(20px, 9999px, 40px, 0); }
+            15% { clip: rect(80px, 9999px, 100px, 0); }
+            100% { clip: rect(10px, 9999px, 30px, 0); }
+        }
+        @keyframes glitch-anim2 {
+            0% { clip: rect(60px, 9999px, 70px, 0); transform: skew(-0.5deg); }
+            5% { clip: rect(10px, 9999px, 20px, 0); transform: skew(0.5deg); }
+            10% { clip: rect(50px, 9999px, 90px, 0); }
+            100% { clip: rect(60px, 9999px, 70px, 0); }
+        }
+        @keyframes glitch-skew {
+            0% { transform: skew(0deg); }
+            10% { transform: skew(-1deg); }
+            20% { transform: skew(1deg); }
+            30% { transform: skew(0deg); }
+            100% { transform: skew(0deg); }
+        }
+
+        p.subtitle { color: #aaa; font-size: 0.8rem; letter-spacing: 1px; margin-top: 0px; font-weight: 300; }
+
+        .photo-section { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 15px; gap: 10px; }
+        .photo-item { display: flex; flex-direction: column; align-items: center; min-width: 60px; }
+        .photo-item img { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; border: 3px solid #FFD700; box-shadow: 0 0 20px rgba(255,255,255,0.5); }
+        .photo-item p { margin-top: 5px; font-size: 9px; font-weight: bold; white-space: nowrap; }
+
+        .compact-search-wrapper { flex-grow: 1; position: relative; }
+        .search-input { width: 100%; padding: 8px 10px; border-radius: 8px; background: rgba(255,255,255,0.1); border: 1px solid #444; color: white; font-family: 'Poppins', sans-serif; font-size: 0.85rem; outline: none; box-sizing: border-box; text-align: center; height: 40px; }
+        .search-input:focus { border-color: var(--neon-green); background: rgba(0,0,0,0.5); }
+
+        .container { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; width: 95%; max-width: 800px; padding-bottom: 80px; box-sizing: border-box; margin-top: 20px; }
+        .card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 15px; padding: 15px; text-align: center; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; backdrop-filter: blur(10px); transition: transform 0.2s; }
+        .card:hover { transform: translateY(-5px); }
+        .card h2 { font-size: 1.1rem; margin: 10px 0 5px 0; font-weight: 700; text-transform: uppercase; }
+
+        .desc-box { 
+            display: none; 
+            background: rgba(0,0,0,0.5); 
+            padding: 10px; 
+            border-radius: 8px; 
+            margin: 10px 0; 
+            font-size: 0.8rem; 
+            color: #ddd; 
+            text-align: left; 
+            border-left: 2px solid white;
+            white-space: pre-wrap; /* ENTER KEY FIX */
+        }
+        /* LINK STYLING FOR DESCRIPTION */
+        .desc-box a { color: var(--neon-blue); text-decoration: underline; font-weight: bold; }
+
+        .info-btn { background: none; border: none; color: #aaa; font-size: 0.75rem; cursor: pointer; margin-bottom: 5px; text-decoration: underline; }
+        .info-btn:hover { color: white; }
+
+        .card-btn { display: block; padding: 10px 0; border-radius: 8px; text-decoration: none; color: black; font-weight: 800; font-size: 0.9rem; background: white; border: none; cursor: pointer; width: 100%; margin-top: auto; font-family: 'Poppins', sans-serif; text-transform: uppercase; letter-spacing: 1px; }
+        .card-btn:hover { background: white; box-shadow: 0 0 15px white; }
+
+        .skeleton-wrapper { background: rgba(255,255,255,0.05); border-radius: 15px; padding: 15px; display: flex; flex-direction: column; gap: 10px; animation: pulse 1.5s infinite ease-in-out; border: 1px solid #333; }
+        .s-img { height: 40px; width: 40px; background: #333; border-radius: 50%; margin: 0 auto; }
+        .s-line-1 { height: 15px; background: #333; border-radius: 5px; width: 60%; margin: 0 auto; }
+        .s-line-2 { height: 10px; background: #222; border-radius: 5px; width: 80%; margin: 0 auto; }
+        .s-btn { height: 35px; background: #333; border-radius: 8px; width: 100%; margin-top: 10px; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
+        .social-menu { position: fixed; bottom: 20px; left: 14px; z-index: 2000; display: flex; flex-direction: column-reverse; align-items: center; gap: 10px; }
+        .toggle-btn, .admin-float-btn { width: 35px; height: 35px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 13px; cursor: pointer; z-index: 2000; transition: all 0.3s ease; background: rgba(0, 0, 0, 0.2); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.2); color: rgba(255, 255, 255, 0.8); box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .toggle-btn:hover, .admin-float-btn:hover { background: rgba(0, 0, 0, 0.8); border-color: #00ff41; color: #00ff41; box-shadow: 0 0 15px rgba(0, 255, 65, 0.4); }
+        .admin-float-btn { position: fixed; bottom: 20px; right: 20px; border-color: rgba(255, 0, 85, 0.3); color: rgba(255, 0, 85, 0.8); user-select: none; }
+        .social-menu.active .toggle-btn { transform: rotate(45deg); background: rgba(0, 0, 0, 0.8); border-color: #ff0055; color: #ff0055; }
+        .social-link { width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; text-decoration: none; font-size: 20px; opacity: 0; transform: translateY(20px) scale(0.5); visibility: hidden; transition: all 0.3s; }
+        .social-menu.active .social-link { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+        .wa-bg { background: #25D366; } .fb-bg { background: #1877F2; } .tg-bg { background: #0088cc; }
+
+        /* --- MODALS --- */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 5000; justify-content: center; align-items: center; }
+        .modal-box { background: #111; padding: 20px; border-radius: 15px; width: 90%; max-width: 380px; border: 2px solid #333; max-height: 90vh; overflow-y: auto; text-align: center; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+        .modern-input { width: 100%; padding: 10px; margin: 5px 0; background: #222; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box; font-family: 'Poppins', sans-serif; font-size: 0.9rem; text-align: left; }
+        #enterPinInput { text-align: center; font-size: 1.2rem; letter-spacing: 5px; border-color: var(--neon-green); }
+        .action-btn { width: 100%; padding: 10px; border-radius: 6px; border:none; background: var(--neon-green); font-weight:bold; cursor:pointer; margin-top:8px; color: black; font-family: 'Poppins'; text-transform: uppercase; }
+        .cancel-btn { background: #333; color: #ccc; margin-top: 5px; }
+        .confirm-btn { background: var(--neon-red); color: white; }
+        .folder-btn { background: #222; border: 1px solid var(--neon-purple); color: white; padding: 10px; width: 100%; margin-bottom: 5px; border-radius: 5px; cursor: pointer; text-align: left; transition: 0.2s; }
+        .folder-btn:hover { background: var(--neon-purple); color: black; }
+        .site-item { background: #1a1a1a; padding: 6px; margin-bottom: 5px; border-radius: 6px; border-left: 3px solid #555; display: flex; justify-content: space-between; align-items: center; text-align: left; }
+        .item-text { font-size: 0.75rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px; }
+        .icons { display:flex; gap: 8px; }
+        .icons i { cursor: pointer; color: #ccc; font-size: 0.9rem; transition:0.2s; }
+        .icons i:hover { color: white; transform: scale(1.1); }
+        .back-nav { width: 95%; max-width: 800px; margin-bottom: 10px; display: none; }
+        .back-btn { background: #333; color: white; border: none; padding: 8px 20px; border-radius: 50px; cursor: pointer; font-size: 0.9rem; font-weight: bold; }
+        .back-btn:hover { background: #555; }
+        .pin-msg { color: #ff0055; font-size: 0.9rem; margin-bottom: 10px; font-weight: bold; }
+        .modal-title { margin:0 0 10px 0; color:white; text-transform: uppercase; font-size: 1.1rem; }
+
+        /* --- IMPROVED ALERT POPUP STYLE (SMALLER & FIT) --- */
+        .alert-popup-box {
+            background: rgba(10, 0, 0, 0.95);
+            border: 2px solid var(--neon-red);
+            box-shadow: 0 0 30px var(--neon-red);
+            padding: 20px;
+            text-align: center;
+            border-radius: 15px;
+            animation: pulse-red 2s infinite;
+            width: 85%;
+            max-width: 320px; 
+        }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 20px rgba(255,0,85,0.5); }
+            50% { box-shadow: 0 0 40px rgba(255,0,85,0.8); }
+            100% { box-shadow: 0 0 20px rgba(255,0,85,0.5); }
+        }
+
+        /* --- ALIGNMENT FIX FOR ALERT --- */
+        #alertTitle {
+            color: var(--neon-red);
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 1.5rem;
+            text-align: center; /* Title Center */
+        }
+        #alertMessageContent {
+            color: white;
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            word-wrap: break-word;
+            text-align: left; /* Message Left */
+            white-space: pre-wrap; /* ✅ ENTER KEY FIX FOR ALERT */
+        }
+        
+        /* LINK STYLING FOR ALERT */
+        #alertMessageContent a { color: var(--neon-blue); text-decoration: underline; font-weight: bold; }
+
+        /* --- RGB TOAST --- */
+        .toast-container { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); z-index: 9999; transition: bottom 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); display: flex; justify-content: center; width: 100%; pointer-events: none; }
+        .toast-box { pointer-events: auto; padding: 12px 25px; border-radius: 50px; display: flex; align-items: center; gap: 15px; color: white; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 0.9rem; box-shadow: 0 10px 30px rgba(0,0,0,0.4); background: linear-gradient(135deg, #2b5876, #4e4376); }
+        .toast-success { background: linear-gradient(135deg, #00b09b, #96c93d); box-shadow: 0 5px 25px rgba(0, 176, 155, 0.5); }
+        .toast-error { background: linear-gradient(135deg, #ff416c, #ff4b2b); box-shadow: 0 5px 25px rgba(255, 65, 108, 0.5); }
+        .toast-info { background: linear-gradient(135deg, #00C6FF, #0072FF); box-shadow: 0 5px 25px rgba(0, 198, 255, 0.5); }
+        .toast-icon { font-size: 1.2rem; }
+        .toast-active { bottom: 40px; }
+
+        /* --- RESPONSIVE LOCK SCREEN & SOCIAL BUTTONS --- */
+        .lock-content { text-align: center; width: 85%; max-width: 400px; padding: 20px; border: 2px solid #ff0055; border-radius: 15px; box-shadow: 0 0 40px rgba(255, 0, 85, 0.3); background: #111; display: flex; flex-direction: column; max-height: 85vh; box-sizing: border-box; }
+        .lock-icon-area { flex-shrink: 0; margin-bottom: 15px; }
+        .lock-scroll-area { flex-grow: 1; overflow-y: auto; margin-bottom: 15px; padding-right: 5px; border-bottom: 1px solid #333; scrollbar-width: thin; scrollbar-color: #ff0055 #222; }
+        .lock-input-area { flex-shrink: 0; width: 100%; }
+        
+        #lockMessageDisplay {
+            color:#ccc; font-family:'Poppins'; font-size:0.9rem; margin:0; white-space: pre-wrap; word-wrap: break-word; line-height:1.5; /* ✅ ENTER KEY FIX FOR LOCK */
+        }
+        #lockMessageDisplay a { color: var(--neon-blue); text-decoration: underline; font-weight: bold; } /* Link styling for Lock */
+
+        /* NEW SOCIAL BUTTONS FOR LOCK SCREEN */
+        .lock-social-area {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+        }
+        .lock-social-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: 0.3s;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .lock-social-btn.wp { background: #25D366; box-shadow: 0 0 10px rgba(37, 211, 102, 0.2); }
+        .lock-social-btn.tg { background: #0088cc; box-shadow: 0 0 10px rgba(0, 136, 204, 0.2); }
+        .lock-social-btn:hover { transform: translateY(-2px); filter: brightness(1.2); }
+
+    </style>
+</head>
+<body>
+
+    <audio id="welcomeAudio" src="welcome.mp3" preload="auto"></audio>
+
+    <div class="news-ticker-wrap">
+        <div class="ticker-content anim-normal" id="newsText">Loading System...</div>
+    </div>
+
+    <canvas id="matrix-bg"></canvas>
+
+    <header>
+        <h1 id="mainHeader" data-text="HAQQANI">HAQQANI</h1>
+        <p class="subtitle" id="subTitle">Loading...</p>
+        
+        <div class="photo-section">
+            <div class="photo-item"><img src="image_left.png" alt="Img1"><p id="profileName1">Janii</p></div>
+            <div class="compact-search-wrapper"><input type="text" class="search-input" id="searchInput" placeholder="Search Tools..."></div>
+            <div class="photo-item"><img src="image_right.png" alt="Img2"><p id="profileName2">Haqqani</p></div>
+        </div>
+    </header>
+
+    <div class="back-nav" id="backNav"><button class="back-btn" onclick="goBackPublic()"> <i class="fas fa-arrow-left"></i> GO BACK </button></div>
+
+    <div class="container" id="siteContainer">
+        <div class="skeleton-wrapper"><div class="s-img"></div><div class="s-line-1"></div><div class="s-line-2"></div><div class="s-btn"></div></div>
+    </div>
+
+    <div class="admin-float-btn" id="adminBtnTrigger"><i class="fas fa-user-secret"></i></div>
+
+    <div class="social-menu" id="socialMenu">
+        <div class="toggle-btn" onclick="toggleSocialMenu()"><i class="fas fa-plus"></i></div>
+        <a href="https://wa.me/923029810479" target="_blank" class="social-link wa-bg"><i class="fab fa-whatsapp"></i></a>
+        <a href="https://t.me/fayazahmedwazir" target="_blank" class="social-link tg-bg"><i class="fab fa-telegram-plane"></i></a>
+        <a href="https://facebook.com/100043628893142" target="_blank" class="social-link fb-bg"><i class="fab fa-facebook-f"></i></a>
+    </div>
+
+    <div id="alertModal" class="modal-overlay" style="z-index: 99999;">
+        <div class="modal-box alert-popup-box">
+            <h2 id="alertTitle"><i class="fas fa-exclamation-triangle"></i> ALERT</h2>
+            <p id="alertMessageContent"></p>
+            <button class="action-btn" style="background:var(--neon-red); color:white; border:none; padding:8px;" onclick="closeAlert()">ACKNOWLEDGE</button>
+        </div>
+    </div>
+
+    <div id="adminModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 class="modal-title">ADMIN PANEL</h3>
+            <div id="loginSection">
+                <input type="password" id="adminPass" class="modern-input" placeholder="Password">
+                <button class="action-btn" onclick="login()">LOGIN</button>
+            </div>
+            <div id="dashboardSection" style="display:none; color:white;">
+                <div style="background:#222; padding:10px; border-radius:8px; margin-bottom:10px; text-align:left;">
+                    <h4 style="margin:0 0 5px 0; color:orange; font-size:0.9rem;">Add / Edit Item</h4>
+                    <select id="itemType" class="modern-input" onchange="toggleLinkInput()"><option value="link">Direct Link</option><option value="folder">Folder</option></select>
+                    <input type="text" id="siteName" class="modern-input" placeholder="Name">
+                    <textarea id="siteDesc" class="modern-input" placeholder="Use [PIN:1234] [MSG:Text]" rows="3" style="resize:vertical;"></textarea>
+                    <input type="text" id="siteLink" class="modern-input" placeholder="URL">
+                    <button id="addBtn" class="action-btn" onclick="addSite()">ADD ITEM</button>
+                    <button id="cancelEditBtn" class="action-btn cancel-btn" onclick="resetEditMode()" style="display:none;">Cancel Edit</button>
+                </div>
+                <button onclick="adminGoBack()" id="adminBackBtn" class="action-btn cancel-btn" style="display:none; margin-bottom:5px;">< Back</button>
+                <div style="max-height:180px; overflow-y:auto; border:1px solid #333; padding:5px; background:#151515;" id="adminList"></div>
+                
+                <div style="background:#222; padding:10px; border-radius:8px; margin-top:10px; text-align:left;">
+                    <h4 style="margin:0 0 10px 0; color:#00ccff; font-size:0.9rem; text-transform:uppercase; border-bottom:1px solid #444; padding-bottom:5px;">NEWS & POPUP SETTINGS</h4>
+                    
+                    <label style="color:#00ff41; font-size:0.8rem; display:block; margin-bottom:2px;"><i class="fas fa-bullhorn"></i> News Ticker:</label>
+                    <input type="text" id="inputTickerMsg" class="modern-input" placeholder="Scroll hone wali khabar..." style="border-color:#00ff41;">
+                    <select id="editTickerDir" class="modern-input" style="margin-bottom:10px;"><option value="normal">R to L (Eng)</option><option value="reverse">L to R (Urdu)</option></select>
+
+                    <label style="color:var(--neon-red); font-size:0.8rem; display:block; margin-bottom:2px;"><i class="fas fa-heading"></i> Popup Title:</label>
+                    <input type="text" id="inputPopupTitle" class="modern-input" placeholder="Warning / Alert / Welcome" style="border-color:var(--neon-red);">
+
+                    <label style="color:var(--neon-red); font-size:0.8rem; display:block; margin-bottom:2px;"><i class="fas fa-envelope-open-text"></i> Popup Message:</label>
+                    <textarea id="inputPopupMsg" class="modern-input" rows="3" placeholder="New Version: <a href="https://google.com">Click Here</a>
+                    ..." style="border-color:var(--neon-red); resize:vertical;"></textarea>
+
+                    <h4 style="margin:10px 0 5px 0; color:#ddd; font-size:0.8rem;">Header Titles</h4>
+                    <input type="text" id="editTitle" class="modern-input" placeholder="Main Title">
+                    <input type="text" id="editSubtitle" class="modern-input" placeholder="Subtitle">
+                    <div style="display:flex; gap:5px;"><input type="text" id="editName1" class="modern-input" placeholder="L-Name"><input type="text" id="editName2" class="modern-input" placeholder="R-Name"></div>
+                    
+                    <button class="action-btn" style="background:#ff0055; color:white; margin-top:10px;" onclick="saveHeaderSettings()">SAVE ALL SETTINGS</button>
+                </div>
+                
+                <div style="background:#220011; padding:10px; border-radius:8px; margin-top:10px; text-align:left; border:1px solid #ff0055;">
+                    <h4 style="margin:0 0 5px 0; color:#ff0055; font-size:0.9rem;">⚠️ EMERGENCY LOCKDOWN</h4>
+                    <select id="lockStatus" class="modern-input"><option value="unlocked">Site Unlocked</option><option value="locked">🔒 LOCK SITE NOW</option></select>
+                    <textarea id="lockMsg" class="modern-input" placeholder="Message" rows="4" style="resize:vertical;"></textarea>
+                    <input type="text" id="lockPass" class="modern-input" placeholder="Unlock Password">
+                    <button class="action-btn" style="background:#ff0055; color:white;" onclick="saveLockSettings()">UPDATE LOCK</button>
+                </div>
+
+                <button onclick="openChangePassModal()" class="action-btn" style="background:#7b1fa2; color:white;">CHANGE PASS</button>
+                <button onclick="closeAdmin()" class="action-btn cancel-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="pinModal" class="modal-overlay">
+        <div class="modal-box" style="border-color: var(--neon-green);">
+            <h3 class="modal-title"><i class="fas fa-lock"></i> Secured Access</h3>
+            <p id="pinMsgDisplay" class="pin-msg"></p> 
+            <input type="password" id="enterPinInput" class="modern-input" placeholder="****">
+            <button class="action-btn" onclick="submitPin()">UNLOCK</button>
+            <button class="action-btn cancel-btn" onclick="closePinModal()">CANCEL</button>
+        </div>
+    </div>
+
+    <div id="confirmModal" class="modal-overlay">
+        <div class="modal-box" style="border-color: var(--neon-red);">
+            <h3 class="modal-title"><i class="fas fa-exclamation-triangle" style="color:var(--neon-red);"></i> CONFIRMATION</h3>
+            <p id="confirmMsg" style="margin-bottom:15px;"></p>
+            <button id="confirmYesBtn" class="action-btn confirm-btn">YES, DO IT</button>
+            <button class="action-btn cancel-btn" onclick="closeConfirmModal()">CANCEL</button>
+        </div>
+    </div>
+    <div id="changePassModal" class="modal-overlay">
+        <div class="modal-box" style="border-color: #7b1fa2;">
+            <h3 class="modal-title" style="color:#7b1fa2;">CHANGE PASSWORD</h3>
+            <p style="color:#ccc; font-size:0.9rem;">Enter new admin password below:</p>
+            <input type="password" id="newAdminPassInput" class="modern-input" placeholder="New Password">
+            <button class="action-btn" style="background:#7b1fa2; color:white;" onclick="submitNewPass()">UPDATE</button>
+            <button class="action-btn cancel-btn" onclick="closeChangePassModal()">CANCEL</button>
+        </div>
+    </div>
+
+    <div id="folderSelectModal" class="modal-overlay">
+        <div class="modal-box" style="border-color: var(--neon-purple);">
+            <h3 class="modal-title"><i class="fas fa-folder-open" style="color:var(--neon-purple);"></i> SELECT FOLDER</h3>
+            <div id="folderListContainer" style="max-height:200px; overflow-y:auto; margin-bottom:10px;"></div>
+            <button class="action-btn cancel-btn" onclick="closeFolderSelectModal()">CANCEL</button>
+        </div>
+    </div>
+
+    <div id="emergencyOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:black; z-index:9999; justify-content:center; align-items:center; flex-direction:column;">
+        <div class="lock-content">
+            <div class="lock-icon-area">
+                <i class="fas fa-radiation" style="font-size:50px; color:#ff0055; animation: pulse 1s infinite;"></i>
+                <h2 style="font-family:'HaqqaniFont', sans-serif; font-size:1.8rem; color:white; margin:10px 0 0 0; letter-spacing:3px;">SYSTEM LOCKED</h2>
+            </div>
+            <div class="lock-scroll-area">
+                <p id="lockMessageDisplay"></p>
+            </div>
+            <div class="lock-input-area">
+                <input type="password" id="emergencyPassInput" placeholder="ENTER PASSCODE" style="width:100%; padding:12px; background:black; border:1px solid #ff0055; color:#ff0055; text-align:center; font-size:1.1rem; letter-spacing:3px; border-radius:8px; outline:none; font-family:'Poppins'; box-sizing:border-box;">
+                <button onclick="unlockSite()" style="width:100%; padding:10px; margin-top:10px; background:#ff0055; color:white; font-weight:bold; border:none; border-radius:8px; cursor:pointer; font-size:0.9rem;">UNLOCK SYSTEM</button>
+            </div>
+            
+            <div class="lock-social-area">
+                <a href="https://wa.me/923029810479" target="_blank" class="lock-social-btn wp">
+                    <i class="fab fa-whatsapp"></i> WhatsApp
+                </a>
+                <a href="https://t.me/fayazahmedwazir" target="_blank" class="lock-social-btn tg">
+                    <i class="fab fa-telegram-plane"></i> Telegram
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer">
+        <div class="toast-box" id="toastBox">
+            <i class="fas fa-info-circle toast-icon" id="toastIcon"></i>
+            <span class="toast-msg" id="toastMessage">Action Successful</span>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxS2Xfy3YAKp2go0BWt8D2R4wmpolL1HNbN_n_zO49BVq30eioo2MAVGln2GKwo5J20pw/exec"; 
+        
+        let allSites = [];
+        let fetchedAdminPass = ""; 
+        let headerConfig = {}; 
+        let currentPublicPath = [];
+        let currentAdminPath = [];
+        let editingIndex = -1;
+        let pendingPin = "", pendingTarget = null, pendingType = "";
+        let confirmCallback = null; 
+        const neonColors = ['#FF0055', '#00FF99', '#00CCFF', '#FFD600', '#9D00FF', '#FF5500', '#00FFFF'];
+
+        initMatrixBg();
+        loadSites();
+        
+        // --- 1. WELCOME AUDIO LOGIC ---
+        document.body.addEventListener('click', () => {
+            const audio = document.getElementById('welcomeAudio');
+            if(audio) audio.play().catch(e => console.log("Audio waiting for interaction"));
+        }, {once:true});
+
+        document.getElementById('searchInput').addEventListener('input', (e) => { renderPublic(e.target.value.toLowerCase()); });
+        document.getElementById('enterPinInput').addEventListener("keypress", function(event) { if (event.key === "Enter") { submitPin(); } });
+
+        async function loadSites() {
+            try {
+                const res = await fetch(SCRIPT_URL);
+                const data = await res.json();
+                allSites = data.sites || [];
+                fetchedAdminPass = data.adminPass;
+                if(data.headerInfo) { headerConfig = data.headerInfo; applyHeaderChanges(headerConfig); }
+                renderPublic();
+            } catch (error) { console.log(error); }
+        }
+
+        // 🟢 DYNAMIC TOAST FUNCTION
+        function showCustomAlert(msg, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const box = document.getElementById('toastBox');
+            const msgEl = document.getElementById('toastMessage');
+            const iconEl = document.getElementById('toastIcon');
+
+            msgEl.innerText = msg;
+            box.classList.remove('toast-success', 'toast-error', 'toast-info');
+
+            if(type === 'error') {
+                box.classList.add('toast-error');
+                iconEl.className = "fas fa-times-circle toast-icon";
+            } else if(type === 'success') {
+                box.classList.add('toast-success');
+                iconEl.className = "fas fa-check-circle toast-icon";
+            } else {
+                box.classList.add('toast-info');
+                iconEl.className = "fas fa-info-circle toast-icon";
+            }
+            
+            container.classList.add('toast-active');
+            setTimeout(() => { container.classList.remove('toast-active'); }, 3000);
+        }
+
+        function renderPublic(filter = "") {
+            const container = document.getElementById('siteContainer');
+            const backNav = document.getElementById('backNav');
+            container.innerHTML = "";
+            backNav.style.display = currentPublicPath.length > 0 ? 'block' : 'none';
+            let currentList = getListByPath(currentPublicPath);
+            if(filter) currentList = currentList.filter(item => item.name.toLowerCase().includes(filter));
+            if(currentList.length === 0) { container.innerHTML = "<p style='grid-column:1/-1; text-align:center; color:#555;'>Empty</p>"; return; }
+            currentList.forEach((site, index) => {
+                const color = neonColors[index % neonColors.length];
+                let visibleDesc = site.desc || 'No description available.';
+                visibleDesc = visibleDesc.replace(/\[PIN:(\d+)\]/g, "").replace(/\[MSG:(.*?)\]/g, "").trim();
+                if(visibleDesc === "") visibleDesc = "Locked Content";
+                const div = document.createElement('div');
+                div.className = 'card'; div.style.borderColor = color; div.style.boxShadow = `0 0 10px ${color}40`;
+                let btnHtml = '';
+                const rawDesc = site.desc || '';
+                const isLocked = rawDesc.includes('[PIN:');
+                if (site.type === 'folder') {
+                    if(isLocked) btnHtml = `<button onclick="prepareLock('folder', ${index}, '${rawDesc.replace(/'/g, "\\'")}')" class="card-btn" style="background:${color}; box-shadow:0 0 0px ${color};">OPEN FOLDER</button>`;
+                    else btnHtml = `<button onclick="openFolderPublic(${index})" class="card-btn" style="background:${color}; box-shadow:0 0 0px ${color};">OPEN FOLDER</button>`;
+                } else {
+                    if (isLocked) btnHtml = `<button onclick="prepareLock('link', '${site.link}', '${rawDesc.replace(/'/g, "\\'")}')" class="card-btn" style="background:${color}; box-shadow:0 0 0px ${color};">OPEN LINK</button>`;
+                    else btnHtml = `<a href="${site.link}" target="_blank" class="card-btn" style="background:${color}; box-shadow:0 0 0px ${color};">OPEN LINK</a>`;
+                }
+                div.innerHTML = `<h2 style="color:${color}; text-shadow:0 0 0px ${color}80;">${site.name}</h2><button class="info-btn" style="color: #FFD700;" onclick="toggleDesc(this)"><i class="fas fa-info-circle"></i> See Info</button><div class="desc-box" style="border-left-color:${color};">${visibleDesc}</div>${btnHtml}`;
+                container.appendChild(div);
+            });
+        }
+
+        function showConfirm(message, onYes) {
+            document.getElementById('confirmMsg').innerText = message;
+            confirmCallback = onYes;
+            document.getElementById('confirmModal').style.display = 'flex';
+        }
+        document.getElementById('confirmYesBtn').onclick = function() { if(confirmCallback) confirmCallback(); closeConfirmModal(); };
+        function closeConfirmModal() { document.getElementById('confirmModal').style.display = 'none'; confirmCallback = null; }
+
+        function showFolderSelect(folders, onSelect) {
+            const listDiv = document.getElementById('folderListContainer');
+            listDiv.innerHTML = "";
+            if(folders.length === 0) { listDiv.innerHTML = "<p style='color:#777;'>No available folders.</p>"; } else { folders.forEach((f, idx) => { const originalIndex = allSites.indexOf(f); listDiv.innerHTML += `<div class="folder-btn" onclick="selectFolder(${originalIndex})"><i class="fas fa-folder"></i> ${f.name}</div>`; }); }
+            window.selectFolder = (idx) => { onSelect(idx); closeFolderSelectModal(); };
+            document.getElementById('folderSelectModal').style.display = 'flex';
+        }
+        function closeFolderSelectModal() { document.getElementById('folderSelectModal').style.display = 'none'; }
+
+        function prepareLock(type, target, fullDesc) {
+            const pinMatch = fullDesc.match(/\[PIN:(\d+)\]/);
+            if(pinMatch) {
+                pendingPin = pinMatch[1]; pendingTarget = target; pendingType = type;
+                const msgMatch = fullDesc.match(/\[MSG:(.*?)\]/);
+                document.getElementById('pinMsgDisplay').innerText = msgMatch ? msgMatch[1] : "Enter Password to Access";
+                document.getElementById('enterPinInput').value = "";
+                document.getElementById('pinModal').style.display = 'flex';
+                document.getElementById('enterPinInput').focus();
+            } else { if(type === 'folder') openFolderPublic(target); else window.open(target, '_blank'); }
+        }
+        function submitPin() {
+            if(document.getElementById('enterPinInput').value === pendingPin) { closePinModal(); if(pendingType === 'folder') openFolderPublic(pendingTarget); else window.open(pendingTarget, '_blank'); } 
+            else { showCustomAlert("Wrong PIN! Try Again.", "error"); }
+        }
+        function closePinModal() { document.getElementById('pinModal').style.display = 'none'; }
+
+        function toggleDesc(btn) { const descBox = btn.nextElementSibling; if (descBox.style.display === "block") { descBox.style.display = "none"; btn.innerHTML = '<i class="fas fa-info-circle"></i> See Info'; } else { descBox.style.display = "block"; btn.innerHTML = '<i class="fas fa-times-circle"></i> Hide Info'; } }
+        function openFolderPublic(index) { currentPublicPath.push(index); renderPublic(); window.scrollTo(0,0); }
+        function goBackPublic() { currentPublicPath.pop(); renderPublic(); window.scrollTo(0,0); }
+        function getListByPath(path) { let list = allSites; for (let i = 0; i < path.length; i++) { list = list[path[i]].items; } return list; }
+
+        function openAdmin() { document.getElementById('adminModal').style.display = 'flex'; }
+        function closeAdmin() { document.getElementById('adminModal').style.display = 'none'; document.getElementById('loginSection').style.display = 'block'; document.getElementById('dashboardSection').style.display = 'none'; document.getElementById('adminPass').value = ""; resetEditMode(); }
+        
+        function login() { 
+            if(document.getElementById('adminPass').value === fetchedAdminPass) { 
+                document.getElementById('loginSection').style.display = 'none'; 
+                document.getElementById('dashboardSection').style.display = 'block'; 
+                
+                // SPLIT LOGIC FOR INPUTS
+                const fullTicker = headerConfig.ticker || "";
+                if(fullTicker.includes("|||")) {
+                    const parts = fullTicker.split("|||");
+                    document.getElementById('inputTickerMsg').value = parts[0].trim();
+                    document.getElementById('inputPopupTitle').value = parts[1].trim();
+                    document.getElementById('inputPopupMsg').value = parts[2].trim();
+                } else {
+                    document.getElementById('inputTickerMsg').value = fullTicker;
+                    document.getElementById('inputPopupTitle').value = "";
+                    document.getElementById('inputPopupMsg').value = "";
+                }
+
+                document.getElementById('editTickerDir').value = headerConfig.tickerDir || "normal";
+                document.getElementById('editTitle').value = headerConfig.title || ""; 
+                document.getElementById('editSubtitle').value = headerConfig.subtitle || ""; 
+                document.getElementById('editName1').value = headerConfig.name1 || ""; 
+                document.getElementById('editName2').value = headerConfig.name2 || ""; 
+                document.getElementById('lockStatus').value = headerConfig.isLocked || "unlocked"; 
+                document.getElementById('lockMsg').value = headerConfig.lockMsg || ""; 
+                document.getElementById('lockPass').value = headerConfig.lockPass || ""; 
+                renderAdminList(); 
+            } else { showCustomAlert("Wrong Password!", "error"); } 
+        }
+        
+        function renderAdminList() { 
+            const listDiv = document.getElementById('adminList'); 
+            const list = getListByPath(currentAdminPath); 
+            listDiv.innerHTML = ""; 
+            document.getElementById('adminBackBtn').style.display = currentAdminPath.length > 0 ? 'block' : 'none'; 
+            list.forEach((s, i) => { 
+                let typeIcon = s.type === 'folder' ? '<i class="fas fa-folder" style="color:orange;"></i>' : '<i class="fas fa-link" style="color:#00ff41;"></i>'; 
+                listDiv.innerHTML += `<div class="site-item"><div class="item-text">${typeIcon} <b>${s.name}</b></div><div class="icons">${s.type==='folder' ? `<i class="fas fa-sign-in-alt" title="Open" onclick="openAdminFolder(${i})"></i>` : ''}<i class="fas fa-pen" title="Edit" onclick="editSite(${i})" style="color:#00ccff;"></i><i class="fas fa-exchange-alt" title="Move" onclick="moveSite(${i})" style="color:#b300ff;"></i><i class="fas fa-arrow-up" title="Up" onclick="moveItem(${i}, -1)"></i><i class="fas fa-arrow-down" title="Down" onclick="moveItem(${i}, 1)"></i><i class="fas fa-trash" title="Delete" onclick="deleteSite(${i})" style="color:#ff0055;"></i></div></div>`; 
+            }); 
+        }
+
+        function moveSite(index) {
+            const list = getListByPath(currentAdminPath); const item = list[index];
+            if (currentAdminPath.length > 0) { showConfirm(`Move "${item.name}" back to Main Menu?`, () => { allSites.push(item); list.splice(index, 1); saveToServer('updateSites', JSON.stringify(allSites)); renderAdminList(); }); } 
+            else { const folders = allSites.filter(f => f.type === 'folder' && f !== item); showFolderSelect(folders, (targetIdx) => { const targetFolder = allSites[targetIdx]; if(!targetFolder.items) targetFolder.items = []; targetFolder.items.push(item); list.splice(index, 1); saveToServer('updateSites', JSON.stringify(allSites)); renderAdminList(); }); }
+        }
+
+        function deleteSite(index) { showConfirm("Are you sure you want to DELETE this?", () => { const list = getListByPath(currentAdminPath); list.splice(index, 1); saveToServer('updateSites', JSON.stringify(allSites)); renderAdminList(); }); }
+        function openAdminFolder(index) { currentAdminPath.push(index); renderAdminList(); }
+        function adminGoBack() { currentAdminPath.pop(); renderAdminList(); }
+        
+        function addSite() { 
+            const name = document.getElementById('siteName').value; const desc = document.getElementById('siteDesc').value; const link = document.getElementById('siteLink').value; const type = document.getElementById('itemType').value; 
+            if(!name) return showCustomAlert("Name Required", "error"); 
+            const list = getListByPath(currentAdminPath); 
+            if(editingIndex > -1) { list[editingIndex].name = name; list[editingIndex].desc = desc; list[editingIndex].type = type; if(type === 'link') list[editingIndex].link = link; if(type === 'folder' && !list[editingIndex].items) list[editingIndex].items = []; resetEditMode(); } 
+            else { let newItem = { name, desc, type }; if(type === 'link') newItem.link = link; if(type === 'folder') newItem.items = []; list.push(newItem); } 
+            saveToServer('updateSites', JSON.stringify(allSites)); renderAdminList(); document.getElementById('siteName').value = ""; document.getElementById('siteDesc').value = ""; document.getElementById('siteLink').value = ""; 
+        }
+        
+        function editSite(index) { const list = getListByPath(currentAdminPath); const item = list[index]; document.getElementById('siteName').value = item.name; document.getElementById('siteDesc').value = item.desc || ""; document.getElementById('itemType').value = item.type; document.getElementById('siteLink').value = item.link || ""; toggleLinkInput(); editingIndex = index; document.getElementById('addBtn').innerText = "UPDATE ITEM"; document.getElementById('addBtn').style.background = "#00ccff"; document.getElementById('cancelEditBtn').style.display = "block"; }
+        function resetEditMode() { editingIndex = -1; document.getElementById('addBtn').innerText = "ADD ITEM"; document.getElementById('addBtn').style.background = "var(--neon-green)"; document.getElementById('cancelEditBtn').style.display = "none"; document.getElementById('siteName').value = ""; document.getElementById('siteDesc').value = ""; document.getElementById('siteLink').value = ""; }
+        function moveItem(index, direction) { const list = getListByPath(currentAdminPath); const newIndex = index + direction; if (newIndex >= 0 && newIndex < list.length) { [list[index], list[newIndex]] = [list[newIndex], list[index]]; saveToServer('updateSites', JSON.stringify(allSites)); renderAdminList(); } }
+        function toggleLinkInput() { const type = document.getElementById('itemType').value; const linkInput = document.getElementById('siteLink'); if(type === 'folder') { linkInput.disabled = true; linkInput.placeholder = "Folder (No Link)"; } else { linkInput.disabled = false; linkInput.placeholder = "URL (https://...)"; } }
+        
+        // 🟢 MERGE DATA ON SAVE
+        function saveHeaderSettings() { 
+            let tickerMsg = document.getElementById('inputTickerMsg').value.trim();
+            let popupTitle = document.getElementById('inputPopupTitle').value.trim();
+            let popupMsg = document.getElementById('inputPopupMsg').value.trim();
+            
+            let finalString = tickerMsg;
+            if(popupMsg !== "") {
+                if(popupTitle === "") popupTitle = "ALERT"; // Default Title
+                finalString = `${tickerMsg} ||| ${popupTitle} ||| ${popupMsg}`;
+            }
+
+            const newConfig = { 
+                ticker: finalString, 
+                tickerDir: document.getElementById('editTickerDir').value, 
+                title: document.getElementById('editTitle').value, 
+                subtitle: document.getElementById('editSubtitle').value, 
+                name1: document.getElementById('editName1').value, 
+                name2: document.getElementById('editName2').value, 
+                isLocked: headerConfig.isLocked, 
+                lockMsg: headerConfig.lockMsg, 
+                lockPass: headerConfig.lockPass 
+            }; 
+            
+            headerConfig = newConfig; 
+            applyHeaderChanges(newConfig); 
+            saveToServer('updateHeader', JSON.stringify(newConfig)); 
+            showCustomAlert("Settings Saved!", "success");
+        }
+        
+        // 🟢 SPLIT LOGIC FOR DISPLAY (HTML ENABLED + ENTER KEY SUPPORT)
+        function applyHeaderChanges(config) { 
+            const rawTicker = config.ticker || "";
+            const tickerWrap = document.querySelector('.news-ticker-wrap');
+            const alertModal = document.getElementById('alertModal');
+            const alertContent = document.getElementById('alertMessageContent');
+            const alertTitle = document.getElementById('alertTitle'); 
+            const tickerTextEl = document.getElementById('newsText');
+            
+            if (rawTicker.includes("|||")) {
+                const parts = rawTicker.split("|||");
+                const tickerMsg = parts[0].trim();
+                const popupTitleText = parts[1] ? parts[1].trim() : "ALERT"; 
+                const popupMsg = parts[2] ? parts[2].trim() : (parts[1] ? parts[1].trim() : ""); 
+
+                if(tickerMsg) {
+                    tickerWrap.style.display = 'block';
+                    tickerTextEl.innerText = tickerMsg;
+                } else {
+                    tickerWrap.style.display = 'none';
+                }
+
+                if(parts.length >= 2) {
+                    alertTitle.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + popupTitleText;
+                    alertContent.innerHTML = popupMsg; // HTML Enabled
+                    alertModal.style.display = 'flex';
+                } else {
+                    alertModal.style.display = 'none';
+                }
+
+            } else {
+                // FALLBACK
+                if (rawTicker.trim().startsWith("[ALERT]")) {
+                    tickerWrap.style.display = 'none';
+                    alertTitle.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ALERT';
+                    alertContent.innerHTML = rawTicker.replace("[ALERT]", "").trim(); // HTML Enabled
+                    alertModal.style.display = 'flex';
+                } else {
+                    tickerWrap.style.display = rawTicker ? 'block' : 'none';
+                    alertModal.style.display = 'none';
+                    tickerTextEl.innerText = rawTicker;
+                }
+            }
+
+            if(tickerWrap.style.display !== 'none') {
+                tickerTextEl.className = "ticker-content"; 
+                void tickerTextEl.offsetWidth; 
+                const textLen = tickerTextEl.innerText.length;
+                const duration = Math.max(15, textLen * 0.2); 
+                tickerTextEl.style.animationDuration = duration + "s";
+                if(config.tickerDir === 'reverse') { tickerTextEl.classList.add('anim-reverse'); } else { tickerTextEl.classList.add('anim-normal'); }
+            }
+
+            if(config.title) { const h1 = document.getElementById('mainHeader'); h1.innerText = config.title; h1.setAttribute('data-text', config.title); } 
+            if(config.subtitle) document.getElementById('subTitle').innerText = config.subtitle; 
+            if(config.name1) document.getElementById('profileName1').innerText = config.name1; 
+            if(config.name2) document.getElementById('profileName2').innerText = config.name2; 
+
+            if(config.isLocked === "locked") {
+                document.getElementById('emergencyOverlay').style.display = 'flex';
+                document.getElementById('lockMessageDisplay').innerHTML = config.lockMsg || "Site is under maintenance."; // HTML Enabled
+                document.body.style.overflow = "hidden";
+            } else { document.getElementById('emergencyOverlay').style.display = 'none'; document.body.style.overflow = "auto"; }
+        }
+
+        function closeAlert() {
+            document.getElementById('alertModal').style.display = 'none';
+        }
+
+        function openChangePassModal() { document.getElementById('changePassModal').style.display = 'flex'; }
+        function closeChangePassModal() { document.getElementById('changePassModal').style.display = 'none'; document.getElementById('newAdminPassInput').value = ''; }
+        async function submitNewPass() { 
+            const newPass = document.getElementById('newAdminPassInput').value; 
+            if(!newPass) return showCustomAlert("Enter a password!", "error");
+            await saveToServer('changePass', null, newPass); 
+            closeChangePassModal();
+            showCustomAlert("Password Changed!", "success"); 
+        }
+        
+        async function saveToServer(type, data = null, newPass = null) { const fd = new FormData(); fd.append('type', type); fd.append('password', fetchedAdminPass); if(data) fd.append('data', data); if(newPass) fd.append('newPass', newPass); try { await fetch(SCRIPT_URL, {method:'POST', body:fd}); } catch(e) {} if(type === 'updateSites') renderPublic(); }
+        function toggleSocialMenu() { document.getElementById('socialMenu').classList.toggle('active'); }
+        function initMatrixBg() { const canvas = document.getElementById('matrix-bg'); const ctx = canvas.getContext('2d'); canvas.width = window.innerWidth; canvas.height = window.innerHeight; const chars = '01HAQQANI'.split(''); const fontSize = 14; const columns = canvas.width/fontSize; const drops = []; for(let x=0; x<columns; x++) drops[x] = 1; function draw() { ctx.fillStyle = 'rgba(0, 0, 0, 0.05)'; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = '#00ff41'; ctx.font = fontSize + 'px monospace'; for(let i=0; i<drops.length; i++) { const text = chars[Math.floor(Math.random()*chars.length)]; ctx.fillText(text, i*fontSize, drops[i]*fontSize); if(drops[i]*fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0; drops[i]++; } } setInterval(draw, 40); }
+
+        let pressTimer; const adminBtn = document.getElementById('adminBtnTrigger');
+        adminBtn.addEventListener('mousedown', startPress); adminBtn.addEventListener('touchstart', startPress); adminBtn.addEventListener('mouseup', cancelPress); adminBtn.addEventListener('mouseleave', cancelPress); adminBtn.addEventListener('touchend', cancelPress);
+
+        function startPress() { adminBtn.style.transform = "scale(0.8)"; adminBtn.style.borderColor = "#ff0055"; pressTimer = setTimeout(() => { if(navigator.vibrate) navigator.vibrate(200); openAdmin(); cancelPress(); }, 3000); }
+        function cancelPress() { clearTimeout(pressTimer); adminBtn.style.transform = "scale(1)"; adminBtn.style.borderColor = "rgba(255, 0, 85, 0.3)"; }
+
+        function saveLockSettings() {
+            const newConfig = { ...headerConfig, isLocked: document.getElementById('lockStatus').value, lockMsg: document.getElementById('lockMsg').value, lockPass: document.getElementById('lockPass').value };
+            headerConfig = newConfig; applyHeaderChanges(newConfig); saveToServer('updateHeader', JSON.stringify(newConfig)); showCustomAlert("LOCK UPDATED!", "success");
+        }
+
+        function unlockSite() {
+            const entered = document.getElementById('emergencyPassInput').value; const actual = headerConfig.lockPass;
+            if(entered === actual) { document.getElementById('emergencyOverlay').style.display = 'none'; document.body.style.overflow = "auto"; } 
+            else { showCustomAlert("WRONG PASSWORD!", "error"); document.getElementById('emergencyPassInput').value = ""; }
+        }
+    </script>
+</body>
+</html>
